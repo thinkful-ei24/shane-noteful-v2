@@ -1,12 +1,11 @@
-'use strict';
+// 'use strict';
 
-const knex = require('../knex');
+// const knex = require('../knex');
 
-process.stdout.write('\x1Bc');
+// process.stdout.write('\x1Bc');
 
-// let searchTerm = 1001;
-// knex
-//   .select('notes.id', 'title', 'content')
+// // let searchTerm = 1001;
+// knex.select('notes.id', 'title', 'content')
 //   .from('notes')
 //   .modify(queryBuilder => {
 //     if (searchTerm) {
@@ -22,9 +21,8 @@ process.stdout.write('\x1Bc');
 //   });
 
 
-//search by id
-// knex
-//   .select('notes.id')
+// //search by id
+// knex.select('notes.id')
 //   .from('notes')
 //   .modify(queryBuilder => {
 //     if(searchTerm) {
@@ -39,7 +37,7 @@ process.stdout.write('\x1Bc');
 //   });
 
 
-  //update
+//   //update
 // knex('notes')
 //   .where('id', searchTerm)
 //   .update(myObj)
@@ -53,22 +51,22 @@ process.stdout.write('\x1Bc');
 //   "content": "NEWCONTENT"
 // };
 
-//create note
-// knex
-//   .insert(newObj)
-//   .into('notes')
-//   .returning(['id', 'title', 'content'])
+// //create note
+// // knex
+// //   .insert(newObj)
+// //   .into('notes')
+// //   .returning(['id', 'title', 'content'])
+// //   .then(console.log);
+
+// //delete
+// let searchID = 1029;
+// knex('notes')
+//   .where({id: searchID})
+//   .del()
+//   .then();
+
+
+
+// knex('notes')
+//   .select()
 //   .then(console.log);
-
-//delete
-let searchID = 1029;
-knex('notes')
-  .where({id: searchID})
-  .del()
-  .then();
-
-
-
-knex('notes')
-  .select()
-  .then(console.log);
