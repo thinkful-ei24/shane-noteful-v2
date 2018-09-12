@@ -58,7 +58,7 @@ router.get('/:id/', (req, res, next) => {
 
 // Put update an item
 router.put('/:id', (req, res, next) => {
-  const id = req.params.id;
+  const { id } = req.params;
 
   /***** Never trust users - validate input *****/
   const updateObj = {};
@@ -77,11 +77,21 @@ router.put('/:id', (req, res, next) => {
     return next(err);
   }
 
-  knex('notes').where('id', id)
+  let noteId;
+
+  knex('notes')
+    .where('id', id)
     .update(updateObj)
-    .returning(['id', 'title', 'content'])
-    .then(item => {
-      res.json(item);
+    .returning(['id'])
+    .then(([item]) => {
+      noteId = item.id;
+      return knex.select('notes.id', 'title', 'content', 'folder_id as folderId', 'folders.name as folderName')
+        .from('notes')
+        .leftJoin('folders', 'notes.folder_id', 'folders.id')
+        .where('notes.id', noteId);
+    })
+    .then(([result]) => {
+      res.location(`${req.originalUrl}/${result.id}`).status(201).json(result);
     })
     .catch(err => {
       next(err);
@@ -91,15 +101,7 @@ router.put('/:id', (req, res, next) => {
 // Post (insert) an item
 router.post('/', (req, res, next) => {
   const { title, content, folderId } = req.body;
-
   const newItem = { title, content, folder_id: folderId };
-  /***** Never trust users - validate input *****/
-  // if (!newItem.title) {
-  //   const err = new Error('Missing `title` in request body');
-  //   err.status = 400;
-  //   return next(err);
-  // }
-
   let noteId;
 
   knex.insert(newItem)
