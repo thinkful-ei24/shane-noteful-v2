@@ -70,7 +70,8 @@ router.put('/:id', (req, res, next) => {
     .update(updateObj)
     .returning(['id', 'title', 'content'])
     .then(item => {
-      res.json(item);})
+      res.json(item);
+    })
     .catch(err => {
       next(err);
   });
