@@ -34,9 +34,13 @@ router.put('/:id', (req, res, next) => {
 
 
 
-  const updateObj = {};
+  const updateObj = {
+    // id: id,
+    name: req.body.name
+  };
 
-  knex('folders').where('id', id)
+  knex('folders')
+    .where('id', id)
     .update(updateObj)
     .returning(['id', 'name'])
     .then(item => {
@@ -47,5 +51,26 @@ router.put('/:id', (req, res, next) => {
     });
 });
 
+router.post('/', (req, res, next) => {
+  const { name } = req.body;
 
+  const newItem = { name };
+
+  if(!newItem.name) {
+    const err = new Error('Missing `name` in request body');
+    err.status = 400;
+    return next(err);
+  }
+
+  knex.insert(newItem)
+    .into('folders')
+
+    .then(results => {
+      res.json(results);
+    })
+    .catch(err => {
+      next(err);
+  });
+});
+// .returning(['id', 'name'])
 module.exports = router;
