@@ -64,7 +64,7 @@ router.post('/', (req, res, next) => {
 
   knex.insert(newItem)
     .into('folders')
-
+    .returning(['id', 'name'])
     .then(results => {
       res.json(results);
     })
@@ -72,5 +72,14 @@ router.post('/', (req, res, next) => {
       next(err);
   });
 });
-// .returning(['id', 'name'])
+
+router.delete('/:id', (req, res, next) => {
+  const { id } = req.params;
+
+  knex('folders').where({id: id})
+    .del()
+    .then(res.sendStatus(204))
+});
+
+
 module.exports = router;
