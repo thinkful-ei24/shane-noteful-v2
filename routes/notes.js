@@ -85,6 +85,9 @@ router.put('/:id', (req, res, next) => {
     .returning(['id'])
     .then(([item]) => {
       noteId = item.id;
+      // SELECT notes.id, title, folder_id as folderId
+      // FROM notes
+      // LEFT JOIN folders ON notes.folder_id = folders.id
       return knex.select('notes.id', 'title', 'content', 'folder_id as folderId', 'folders.name as folderName')
         .from('notes')
         .leftJoin('folders', 'notes.folder_id', 'folders.id')

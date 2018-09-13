@@ -3,7 +3,7 @@ const knex = require('../knex');
 
 const router = express.Router();
 
-router.get('/', (req, res, next) => {
+foldersRouter.get('/', (req, res, next) => {
   knex.select('id', 'name')
     .from('folders')
     .then(results => {
@@ -12,7 +12,7 @@ router.get('/', (req, res, next) => {
     .catch(err => next(err));
 });
 
-router.get('/:id', (req, res, next) => {
+foldersRouter.get('/:id', (req, res, next) => {
   const { id } = req.params;
 
   knex.first('id', 'name')
@@ -27,15 +27,10 @@ router.get('/:id', (req, res, next) => {
     });
 });
 
-router.put('/:id', (req, res, next) => {
+foldersRouter.put('/:id', (req, res, next) => {
   const { id } = req.params;
-//on click => { id: 101
-             // name: Archive }
-
-
 
   const updateObj = {
-    // id: id,
     name: req.body.name
   };
 
@@ -51,7 +46,7 @@ router.put('/:id', (req, res, next) => {
     });
 });
 
-router.post('/', (req, res, next) => {
+foldersRouter.post('/', (req, res, next) => {
   const { name } = req.body;
 
   const newItem = { name };
@@ -73,7 +68,7 @@ router.post('/', (req, res, next) => {
   });
 });
 
-router.delete('/:id', (req, res, next) => {
+foldersRouter.delete('/:id', (req, res, next) => {
   const { id } = req.params;
 
   knex('folders').where({id: id})
