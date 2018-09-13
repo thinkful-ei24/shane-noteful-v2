@@ -14,7 +14,7 @@ tagsRouter.get('/', (req, res, next) => {
     });
 });
 
-router.get('/:id', (req, res, next) => {
+tagsRouter.get('/:id', (req, res, next) => {
   const { id } = req.params;
 
   knex.first('id', 'name')
@@ -77,42 +77,32 @@ tagsRouter.delete('/:id', (req, res, next) => {
     .then(res.sendStatus(204))
 });
 
+module.exports = tagsRouter;
 
 
 
 
+//  Post method from https://courses.thinkful.com/dev-301v1/assignment/2.6.4
 
+// router.post('/tags', (req, res, next) => {
+//   const { name } = req.body;
 
+//   /***** Never trust users. Validate input *****/
+//   if (!name) {
+//     const err = new Error('Missing `name` in request body');
+//     err.status = 400;
+//     return next(err);
+//   }
 
+//   const newItem = { name };
 
-
-
-
-
-
-
-
-
-
-router.post('/tags', (req, res, next) => {
-  const { name } = req.body;
-
-  /***** Never trust users. Validate input *****/
-  if (!name) {
-    const err = new Error('Missing `name` in request body');
-    err.status = 400;
-    return next(err);
-  }
-
-  const newItem = { name };
-
-  knex.insert(newItem)
-    .into('tags')
-    .returning(['id', 'name'])
-    .then((results) => {
-      // Uses Array index solution to get first item in results array
-      const result = results[0];
-      res.location(`${req.originalUrl}/${result.id}`).status(201).json(result);
-    })
-    .catch(err => next(err));
-});
+//   knex.insert(newItem)
+//     .into('tags')
+//     .returning(['id', 'name'])
+//     .then((results) => {
+//       // Uses Array index solution to get first item in results array
+//       const result = results[0];
+//       res.location(`${req.originalUrl}/${result.id}`).status(201).json(result);
+//     })
+//     .catch(err => next(err));
+// });

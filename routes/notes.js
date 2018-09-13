@@ -11,9 +11,11 @@ const knex = require('../knex');
 // Get All (and search by query)
 notesRouter.get('/', (req, res, next) => {
   const { searchTerm } = req.query;
-  const { folderId } = req.query;
-  knex.select('notes.id', 'title', 'content', 'folders.id as folderId', 'folders.name as folderName')
+  const { folderId, noteTagId } = req.query;
+  knex.select('notes.id', 'title', 'content', 'folders.id as folderId', 'folders.name as folderName', 'notes_tags.tag_id', 'tags.id', 'tags.name')
   .from('notes')
+  .leftJoin('notes_tags', 'notes.id', 'notes_tags.note_id')
+  .leftJoin('tags', 'notes_tags.tag_id', 'tags.id')
   .leftJoin('folders', 'notes.folder_id', 'folders.id')
   .modify(queryBuilder => {
     if (searchTerm) {
@@ -23,6 +25,9 @@ notesRouter.get('/', (req, res, next) => {
   .modify(function (queryBuilder) {
     if (folderId) {
       queryBuilder.where('folder_id', folderId);
+    }
+    if (noteTagId) {
+      queryBuilder.where('tag_id', noteTagId);
     }
   })
   .orderBy('notes.id')
@@ -37,14 +42,19 @@ notesRouter.get('/', (req, res, next) => {
 // Get a single item
 notesRouter.get('/:id/', (req, res, next) => {
   const { id } = req.params;
-  const { folderId } = req.query;
-  knex.first('notes.id', 'title', 'content', 'folders.id as folderId', 'folders.name as folderName')
+  const { folderId, noteTagId } = req.query;
+  knex.first('notes.id', 'title', 'content', 'folders.id as folderId', 'folders.name as folderName', 'notes_tags.tag_id', 'tags.id', 'tags.name')
   .from('notes')
+  .leftJoin('notes_tags', 'notes.id', 'notes_tags.note_id')
+  .leftJoin('tags', 'notes_tags.tag_id', 'tags.id')
   .leftJoin('folders', 'notes.folder_id', 'folders.id')
   .where('notes.id', id)
   .modify(function (queryBuilder) {
     if (folderId) {
       queryBuilder.where('folder_id', folderId);
+    }
+    if (noteTagId) {
+      queryBuilder.where('tag_id', noteTagId);
     }
   })
   .returning(['id', 'title', 'content'])
@@ -138,4 +148,4 @@ notesRouter.delete('/:id', (req, res, next) => {
   });
 });
 
-module.exports = router;
+module.exports = notesRouter;
