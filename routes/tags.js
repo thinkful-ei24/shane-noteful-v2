@@ -68,7 +68,14 @@ tagsRouter.post('/', (req, res, next) => {
     });
 });
 
+tagsRouter.delete('/:id', (req, res, next) => {
+  const { id } = req.params;
 
+  knex('tags')
+    .where('id', id)
+    .del()
+    .then(res.sendStatus(204))
+});
 
 
 
