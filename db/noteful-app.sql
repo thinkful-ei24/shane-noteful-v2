@@ -2,6 +2,9 @@
 -- --SELECT CURRENT_DATE;
 
 DROP TABLE IF EXISTS folders;
+DROP TABLE IF EXISTS notes;
+DROP TABLE IF EXISTS tags;
+
 
 CREATE TABLE folders (
     id serial PRIMARY KEY,
@@ -16,9 +19,15 @@ INSERT INTO folders (name) VALUES
   ('Personal'),
   ('Work');
 
-SELECT * FROM folders LIMIT 5;
+CREATE TABLE tags (
+    id serial PRIMARY KEY,
+    name text NOT NULL
+);
 
-DROP TABLE IF EXISTS notes;
+CREATE TABLE notes_tags (
+  note_id INTEGER NOT NULL REFERENCES notes ON DELETE CASCADE,
+  tag_id INTEGER NOT NULL REFERENCES tags ON DELETE CASCADE
+);
 
 CREATE TABLE notes(
   id SERIAL PRIMARY KEY,
@@ -37,3 +46,8 @@ INSERT INTO notes
 
 SELECT * FROM notes LIMIT 5;
 
+INSERT INTO tags
+
+INSERT INTO notes_tags
+  (note_id, tag_id) VALUES
+    (1005, 1), (1006, 2), (1007, 3)RETURNING note_id, tag_id;

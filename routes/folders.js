@@ -1,7 +1,7 @@
 const express = require('express');
 const knex = require('../knex');
 
-const router = express.Router();
+const foldersRouter = express.Router();
 
 foldersRouter.get('/', (req, res, next) => {
   knex.select('id', 'name')

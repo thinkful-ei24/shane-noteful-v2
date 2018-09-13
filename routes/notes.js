@@ -3,13 +3,13 @@
 const express = require('express');
 
 // Create an router instance (aka "mini-app")
-const router = express.Router();
+const notesRouter = express.Router();
 
 // TEMP: Simple In-Memory Database
 const knex = require('../knex');
 
 // Get All (and search by query)
-router.get('/', (req, res, next) => {
+notesRouter.get('/', (req, res, next) => {
   const { searchTerm } = req.query;
   const { folderId } = req.query;
   knex.select('notes.id', 'title', 'content', 'folders.id as folderId', 'folders.name as folderName')
@@ -35,7 +35,7 @@ router.get('/', (req, res, next) => {
 });
 
 // Get a single item
-router.get('/:id/', (req, res, next) => {
+notesRouter.get('/:id/', (req, res, next) => {
   const { id } = req.params;
   const { folderId } = req.query;
   knex.first('notes.id', 'title', 'content', 'folders.id as folderId', 'folders.name as folderName')
@@ -57,7 +57,7 @@ router.get('/:id/', (req, res, next) => {
 });
 
 // Put update an item
-router.put('/:id', (req, res, next) => {
+notesRouter.put('/:id', (req, res, next) => {
   const { id } = req.params;
 
   /***** Never trust users - validate input *****/
@@ -102,7 +102,7 @@ router.put('/:id', (req, res, next) => {
 });
 
 // Post (insert) an item
-router.post('/', (req, res, next) => {
+notesRouter.post('/', (req, res, next) => {
   const { title, content, folderId } = req.body;
   const newItem = { title, content, folder_id: folderId };
   let noteId;
@@ -127,7 +127,7 @@ router.post('/', (req, res, next) => {
 });
 
 // Delete an item
-router.delete('/:id', (req, res, next) => {
+notesRouter.delete('/:id', (req, res, next) => {
   const id = req.params.id;
 
   knex('notes').where({id: id})
