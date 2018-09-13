@@ -17,11 +17,11 @@ tagsRouter.get('/', (req, res, next) => {
 tagsRouter.get('/:id', (req, res, next) => {
   const { id } = req.params;
 
-  knex.first('id', 'name')
+  knex.select('id', 'name')
     .from('tags')
     .where('id', id)
     .then(results => {
-      res.json(results);
+      res.json(results[0]);
     })
     .catch(err => {
       next(err);
