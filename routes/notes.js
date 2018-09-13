@@ -1,7 +1,7 @@
 'use strict';
 
 const express = require('express');
-
+const hydrateNotes = require('../utils/hydrateNotes');
 // Create an router instance (aka "mini-app")
 const notesRouter = express.Router();
 
@@ -57,9 +57,16 @@ notesRouter.get('/:id/', (req, res, next) => {
       queryBuilder.where('tag_id', noteTagId);
     }
   })
-  .returning(['id', 'title', 'content'])
+  // .returning(['id', 'title', 'content'])
   .then(results => {
-    res.json(results);
+    if (results) {
+      // Hydrate the results
+      const hydrated = hydrateNotes(results)[0];
+      // Respond with a location header, a 201 status and a note object
+      res.location(`${req.originalUrl}/${hydrated.id}`).status(201).json(hydrated);
+    } else {
+      next();
+    }
   })
   .catch(err => {
     next(err);
@@ -113,27 +120,39 @@ notesRouter.put('/:id', (req, res, next) => {
 
 // Post (insert) an item
 notesRouter.post('/', (req, res, next) => {
-  const { title, content, folderId } = req.body;
+  const { title, content, folderId, tags } = req.body;
   const newItem = { title, content, folder_id: folderId };
   let noteId;
-
-  knex.insert(newItem)
-    .into('notes')
-    .returning('id')
+  // Insert new note into notes table
+  knex.insert(newItem).into('notes').returning('id')
     .then(([id]) => {
+      // Insert related tags into notes_tags table
       noteId = id;
-
-      return knex.select('notes.id', 'title', 'content', 'folder_id as folderId', 'folders.name as folderName')
+      const tagsInsert = tags.map(tagId => ({ note_id: noteId, tag_id: tagId }));
+      return knex.insert(tagsInsert).into('notes_tags');
+    })
+    .then(() => {
+      // Select the new note and leftJoin on folders and tags
+      return knex.select('notes.id', 'title', 'content',
+        'folders.id as folder_id', 'folders.name as folderName',
+        'tags.id as tagId', 'tags.name as tagName')
         .from('notes')
         .leftJoin('folders', 'notes.folder_id', 'folders.id')
+        .leftJoin('notes_tags', 'notes.id', 'notes_tags.note_id')
+        .leftJoin('tags', 'tags.id', 'notes_tags.tag_id')
         .where('notes.id', noteId);
     })
-    .then(([result]) => {
-      res.location(`${req.originalUrl}/${result.id}`).status(201).json(result);
+    .then(result => {
+      if (result) {
+        // Hydrate the results
+        const hydrated = hydrateNotes(result)[0];
+        // Respond with a location header, a 201 status and a note object
+        res.location(`${req.originalUrl}/${hydrated.id}`).status(201).json(hydrated);
+      } else {
+        next();
+      }
     })
-    .catch(err => {
-      next(err);
-  });
+    .catch(err => next(err));
 });
 
 // Delete an item
