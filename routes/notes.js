@@ -142,7 +142,7 @@ notesRouter.post('/', (req, res, next) => {
   const newItem = { title, content, folder_id: folderId };
   let noteId;
   // Insert new note into notes table
-  knex.insert(newItem).into('notes').returning('id')
+  knex.insert(newItem).into('notes')
     .then(([id]) => {
       // Insert related tags into notes_tags table
       noteId = id;

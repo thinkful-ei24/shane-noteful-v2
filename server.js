@@ -48,7 +48,7 @@ app.use((err, req, res, next) => {
 
 // Listen for incoming connections
 app.listen(PORT, function () {
-  console.info(`Server listening on ${this.address().port}`);
+  console.info(`Server listening on ${this.hostname.port}`);
 }).on('error', err => {
   console.error(err);
 });
