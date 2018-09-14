@@ -72,51 +72,41 @@ notesRouter.get('/:id/', (req, res, next) => {
   }
   })
   .catch(err => {
+    err.status(404);
     next(err);
   });
 });
 
 // Put update an item
 notesRouter.put('/:id', (req, res, next) => {
-  const { id } = req.params;
+  const noteId = req.params.id;
+  const { title, content, folderId, tags = [] } = req.body;
 
-  /***** Never trust users - validate input *****/
-  const updateObj = {};
-  const updateableFields = ['title', 'content', 'folderId', 'tags'];
-
-  updateableFields.forEach(field => {
-    if (field in req.body) {
-      updateObj[field] = req.body[field];
-    }
-  });
-
-  /***** Never trust users - validate input *****/
-  if (!updateObj.title) {
+  /***** Never trust users. Validate input *****/
+  if (!title) {
     const err = new Error('Missing `title` in request body');
     err.status = 400;
     return next(err);
   }
 
-  let noteId;
+  const updateItem = {
+    title: title,
+    content: content,
+    folder_id: (folderId) ? folderId : null
+  };
 
-  knex('notes')
-    .where('id', id)
-    .update({title: updateObj.title, content: updateObj.content, folder_id: (updateObj.folderId) ? (updateObj.folderId): null})
-    .returning(['id'])
-    .then(([item]) => {
-      noteId = item.id;
-      // delete original tags
-      return knex('notes_tags')
-        .where('note_id', noteId)
-        .del();
+  knex('notes').update(updateItem).where('id', noteId)
+    .then(() => {
+      return knex.del().from('notes_tags').where('note_id', noteId);
     })
     .then(() => {
-      // Insert related tags into notes_tags table
-      const tagsInsert = updateObj.tags.map(tagId => ({ note_id: noteId, tag_id: tagId }));
+      const tagsInsert = tags.map(tid => ({ note_id: noteId, tag_id: tid }));
       return knex.insert(tagsInsert).into('notes_tags');
     })
     .then(() => {
-      return knex.select('notes.id', 'title', 'content', 'folder_id as folderId', 'folders.name as folderName', 'tags.id as tagId', 'tags.name as tagName')
+      return knex.select('notes.id', 'title', 'content',
+        'folder_id as folderId', 'folders.name as folderName',
+        'tags.id as tagId', 'tags.name as tagName')
         .from('notes')
         .leftJoin('folders', 'notes.folder_id', 'folders.id')
         .leftJoin('notes_tags', 'notes.id', 'notes_tags.note_id')
@@ -125,26 +115,37 @@ notesRouter.put('/:id', (req, res, next) => {
     })
     .then(result => {
       if (result) {
-        // Hydrate the results
-        const hydrated = hydrateNotes(result)[0];
-        // Respond with a location header, a 201 status and a note object
-        res.location(`${req.originalUrl}/${hydrated.id}`).status(201).json(hydrated);
+        const [hydrated] = hydrateNotes(result);
+        res.json(hydrated);
       } else {
         next();
       }
     })
-    .catch(err => next(err));
+    .catch(err => {
+      next(err);
+    });
 });
+
 
 // Post (insert) an item
 notesRouter.post('/', (req, res, next) => {
-  const { title, content, folderId, tags } = req.body;
+  const { title, content, folderId, tags = [] } = req.body;
+
+  /***** Never trust users. Validate input *****/
+  if (!title) {
+    const err = new Error('Missing `title` in request body');
+    err.status = 400;
+    return next(err);
+  }
+
   const newItem = { title, content, folder_id: folderId };
   let noteId;
+
   // Insert new note into notes table
-  knex.insert(newItem).into('notes')
+  knex.insert(newItem)
+    .into('notes')
+    .returning('id')
     .then(([id]) => {
-      // Insert related tags into notes_tags table
       noteId = id;
       const tagsInsert = tags.map(tagId => ({ note_id: noteId, tag_id: tagId }));
       return knex.insert(tagsInsert).into('notes_tags');
@@ -175,12 +176,22 @@ notesRouter.post('/', (req, res, next) => {
 notesRouter.delete('/:id', (req, res, next) => {
   const id = req.params.id;
 
-  knex('notes').where({id: id})
-    .del()
-    .then(res.sendStatus(204))
+  // knex('notes').where({id: id})
+  //   .del()
+  //   .then(res.sendStatus(204))
+  //   .catch(err => {
+  //    next(err);
+  // });
+
+  knex.del()
+    .where('id', id)
+    .from('notes')
+    .then(() => {
+      res.status(204).end();
+    })
     .catch(err => {
-     next(err);
-  });
+      next(err);
+    });
 });
 
 module.exports = notesRouter;
