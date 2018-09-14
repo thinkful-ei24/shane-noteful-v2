@@ -34,3 +34,45 @@ describe('Static Server', function () {
   });
 
 });
+
+describe('Noteful API', function () {
+  const seedData = require('../db/seedData');
+
+  beforeEach(function () {
+    //re-init the db
+    return seedData('./db/noteful.sql');
+  });
+
+  after(function () {
+    // destroy the connection
+    return knex.destroy();
+  });
+
+  describe('GET /api/notes', function () {
+
+    it('should return the default of 10 Notes ', function () {
+      return chai.request(app)
+        .get('/api/notes')
+        .then(function (res) {
+          expect(res).to.have.status(200);
+          expect(res).to.be.json;
+          expect(res.body).to.be.a('array');
+          expect(res.body).to.have.length(10);
+        });
+    });
+
+    it('should return correct search results for a valid searchTerm', function () {
+      return chai.request(app)
+        .get('/api/notes?searchTerm=about%20cats')
+        .then(function (res) {
+          expect(res).to.have.status(200);
+          expect(res).to.be.json;
+          expect(res.body).to.be.a('array');
+          expect(res.body).to.have.length(4);
+          expect(res.body[0]).to.be.an('object');
+        });
+    });
+
+  });
+
+});
